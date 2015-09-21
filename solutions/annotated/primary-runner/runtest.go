@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -68,8 +69,15 @@ func main() {
 
 	generator.Run()
 
-	diff2(r1, r2)
-
+	areDifferent := diff2(r1, r2)
+	status := "success"
+	if areDifferent {
+		status = "fail"
+	}
+	statusJson, err := json.Marshal(map[string]string{"status": status})
+	if err != nil {
+		log.Fatal(err)
+	}
 	err = prog1.Wait()
 	err1 := prog2.Wait()
 	if err != nil || err1 != nil {
@@ -78,14 +86,15 @@ func main() {
 	ioutil.WriteFile("input.txt", inputLog.Bytes(), 0644)
 	ioutil.WriteFile("out1.txt", w1Log.Bytes(), 0644)
 	ioutil.WriteFile("out2.txt", w2Log.Bytes(), 0644)
+	ioutil.WriteFile("status.json", statusJson, 0644)
 
 	//fmt.Printf("inputLog: %s\n", &inputLog)
 	//fmt.Printf("w1Log: %s\n", &w1Log)
 	//fmt.Printf("w2Log: %s\n", &w2Log)
 }
 
-func diff2(r1, r2 io.Reader) {
-
+func diff2(r1, r2 io.Reader) bool {
+	diff := false
 	iw1 := bufio.NewWriter(&w1Log)
 	iw2 := bufio.NewWriter(&w2Log)
 
@@ -102,7 +111,7 @@ func diff2(r1, r2 io.Reader) {
 		n2 := scanner2.Scan()
 		err1 := scanner1.Err()
 		err2 := scanner1.Err()
-		fmt.Println(n1, n2, err1, err2)
+		//fmt.Println(n1, n2, err1, err2)
 		if n1 != n2 || n1 == false || n2 == false {
 			break
 		}
@@ -111,9 +120,11 @@ func diff2(r1, r2 io.Reader) {
 		}
 		line1 := scanner1.Text()
 		line2 := scanner2.Text()
-		fmt.Printf("So far: %s, %s\n", line1, line2)
+		//fmt.Printf("So far: %s, %s\n", line1, line2)
 		if line1 != line2 {
+			diff = true
 			fmt.Printf("Mismatch:\n->%s\n=>%s\n", line1, line2)
 		}
 	}
+	return diff
 }

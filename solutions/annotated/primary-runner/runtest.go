@@ -12,6 +12,13 @@ import (
 	"os/exec"
 )
 
+const (
+	PENDING = "pending"
+	SUCCESS = "success"
+	ERROR   = "error"
+	FAILURE = "failure"
+)
+
 func runProg(cmd *exec.Cmd) (io.WriteCloser, io.ReadCloser, error) {
 	w, err := cmd.StdinPipe()
 	if err != nil {
@@ -70,9 +77,11 @@ func main() {
 	generator.Run()
 
 	areDifferent := diff2(r1, r2)
-	status := "success"
+	status := PENDING
 	if areDifferent {
-		status = "fail"
+		status = FAILURE
+	} else {
+		status = SUCCESS
 	}
 	statusJson, err := json.Marshal(map[string]string{"status": status})
 	if err != nil {

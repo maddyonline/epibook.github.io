@@ -31,7 +31,7 @@ bool CanStringBeAPalindrome(string* s) {
 
   // A string can be permuted as a palindrome if the number of odd time
   // chars <= 1.
-  return odd_count < 1;
+  return odd_count <= 1;
 }
 // @exclude
 
